@@ -19,6 +19,6 @@ RUN mamba install --quiet --yes \
 # Temporary fix for https://github.com/jupyter/docker-stacks/issues/1480
 USER root
 WORKDIR /opt/conda/lib/python3.9/site-packages/
-RUN wget -qO- https://patch-diff.githubusercontent.com/raw/tensorflow/tensorflow/pull/51450.diff | git apply
+# RUN wget -qO- https://patch-diff.githubusercontent.com/raw/tensorflow/tensorflow/pull/51450.diff | git apply
 USER ${NB_UID}
 WORKDIR "${HOME}"
