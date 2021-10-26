@@ -1,6 +1,6 @@
 # Copyright (c) Jupyter Development Team.
 # Distributed under the terms of the Modified BSD License.
-ARG OWNER=jupyter
+ARG OWNER=voight
 ARG BASE_CONTAINER=$OWNER/pyspark-notebook
 FROM $BASE_CONTAINER
 

@@ -2,8 +2,8 @@
 # Distributed under the terms of the Modified BSD License.
 
 # https://hub.docker.com/r/jupyter/base-notebook/tags
-ARG OWNER=jupyter
-ARG BASE_CONTAINER=$OWNER/base-notebook:33add21fab64
+ARG OWNER=voight
+ARG BASE_CONTAINER=$OWNER/base-notebook:1.1
 FROM $BASE_CONTAINER
 
 LABEL maintainer="Jupyter Project <jupyter@googlegroups.com>"
