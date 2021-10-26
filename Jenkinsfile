@@ -4,14 +4,14 @@ String imageRepo = "voight"
 String nexusServer = "nexus.voight.org:9042"
 
 stage('Build') {
-    buildArm(imageName, imageVersion, imageRepo, nexusServer)
-    buildAMD(imageName, imageVersion, imageRepo, nexusServer)
+    buildArm(imageName, imageVersion, imageRepo, nexusServer, "docker-build-arm${UUID.randomUUID().toString()}")
+    buildAMD(imageName, imageVersion, imageRepo, nexusServer, "docker-build-x86_64${UUID.randomUUID().toString()}")
     createManifest(imageName, imageVersion, imageRepo, nexusServer)
 }
 
-def buildArm(imageName, imageVersion, imageRepo, nexusServer) {
+def buildArm(imageName, imageVersion, imageRepo, nexusServer, dockerLabel) {
     podTemplate(
-            label: "docker-build-arm64${UUID.randomUUID().toString()}",
+            label: dockerLabel,
             containers: [
                     containerTemplate(name: 'docker',
                             image: 'docker:20.10.9',
@@ -27,7 +27,7 @@ def buildArm(imageName, imageVersion, imageRepo, nexusServer) {
             ],
             nodeSelector: 'kubernetes.io/arch=arm64'
     ) {
-        node(labelArm) {
+        node(dockerLabel) {
             stage('Git Checkout') {
                 def scmVars = checkout([
                         $class           : 'GitSCM',
@@ -54,9 +54,9 @@ def buildArm(imageName, imageVersion, imageRepo, nexusServer) {
     }
 }
 
-def buildAMD(imageName, imageVersion, imageRepo, nexusServer) {
+def buildAMD(imageName, imageVersion, imageRepo, nexusServer, dockerLabel) {
     podTemplate(
-            label: "docker-build-x86_64${UUID.randomUUID().toString()}",
+            label: dockerLabel,
             containers: [
                     containerTemplate(name: 'docker',
                             image: 'docker:20.10.9',
@@ -72,7 +72,7 @@ def buildAMD(imageName, imageVersion, imageRepo, nexusServer) {
             ],
             nodeSelector: 'kubernetes.io/arch=amd64'
     ) {
-        node(labelx86_64) {
+        node(dockerLabel) {
             stage('Git Checkout') {
                 def scmVars = checkout([
                         $class           : 'GitSCM',
