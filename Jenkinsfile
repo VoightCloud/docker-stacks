@@ -1,6 +1,6 @@
 String imageVersion = "1.2"
 ArrayList<String> imageNames = ["base-notebook", "minimal-notebook", "scipy-notebook", "pyspark-notebook", "all-spark-notebook", "r-notebook", "datascience-notebook",
-        "r-notebook", "tensorflow-notebook"]
+        "r-notebook"]
 String imageRepo = "voight"
 String nexusServer = "nexus.voight.org:9042"
 
@@ -19,6 +19,7 @@ stage ("Build") {
                     buildAMD(imageName, imageVersion, imageRepo, nexusServer, "docker-build-x86_64${UUID.randomUUID().toString()}")
                     createManifest(imageName, imageVersion, imageRepo, nexusServer, "docker-manifest-x86_64${UUID.randomUUID().toString()}")
                 }
+                buildAMD("tensorflow-notebook", imageVersion, imageRepo, nexusServer, "docker-manifest-x86_64${UUID.randomUUID().toString()}")
             }
         }
     }
