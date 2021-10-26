@@ -5,23 +5,25 @@ String nexusServer = "nexus.voight.org:9042"
 
 pipeline {
     agent any
-    stage('Build') {
-        def scmVars = checkout([
-                $class           : 'GitSCM',
-                userRemoteConfigs: scm.userRemoteConfigs,
-                branches         : scm.branches,
-                extensions       : scm.extensions
-        ])
+    stages {
+        stage('Build') {
+            def scmVars = checkout([
+                    $class           : 'GitSCM',
+                    userRemoteConfigs: scm.userRemoteConfigs,
+                    branches         : scm.branches,
+                    extensions       : scm.extensions
+            ])
 
-        // used to create the Docker image
-        env.GIT_BRANCH = scmVars.GIT_BRANCH
-        env.GIT_COMMIT = scmVars.GIT_COMMIT
+            // used to create the Docker image
+            env.GIT_BRANCH = scmVars.GIT_BRANCH
+            env.GIT_COMMIT = scmVars.GIT_COMMIT
 
-        stash name: 'scm', includes: '*'
+            stash name: 'scm', includes: '*'
 
-        buildArm(imageName, imageVersion, imageRepo, nexusServer, "docker-build-arm${UUID.randomUUID().toString()}")
-        buildAMD(imageName, imageVersion, imageRepo, nexusServer, "docker-build-x86_64${UUID.randomUUID().toString()}")
-        createManifest(imageName, imageVersion, imageRepo, nexusServer)
+            buildArm(imageName, imageVersion, imageRepo, nexusServer, "docker-build-arm${UUID.randomUUID().toString()}")
+            buildAMD(imageName, imageVersion, imageRepo, nexusServer, "docker-build-x86_64${UUID.randomUUID().toString()}")
+            createManifest(imageName, imageVersion, imageRepo, nexusServer)
+        }
     }
 }
 
