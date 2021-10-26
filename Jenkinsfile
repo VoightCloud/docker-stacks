@@ -1,6 +1,3 @@
-GString labelArm = "docker-build-arm64${UUID.randomUUID().toString()}"
-GString labelx86_64 = "docker-build-x86_64${UUID.randomUUID().toString()}"
-
 String imageVersion = "1.1"
 String imageName = "base-notebook"
 String imageRepo = "voight"
@@ -14,7 +11,7 @@ stage('Build') {
 
 def buildArm(imageName, imageVersion, imageRepo, nexusServer) {
     podTemplate(
-            label: labelArm,
+            label: "docker-build-arm64${UUID.randomUUID().toString()}",
             containers: [
                     containerTemplate(name: 'docker',
                             image: 'docker:20.10.9',
@@ -59,7 +56,7 @@ def buildArm(imageName, imageVersion, imageRepo, nexusServer) {
 
 def buildAMD(imageName, imageVersion, imageRepo, nexusServer) {
     podTemplate(
-            label: labelx86_64,
+            label: "docker-build-x86_64${UUID.randomUUID().toString()}",
             containers: [
                     containerTemplate(name: 'docker',
                             image: 'docker:20.10.9',
@@ -103,7 +100,7 @@ def buildAMD(imageName, imageVersion, imageRepo, nexusServer) {
 
 def createManifest(imageName, imageVersion, imageRepo, nexusServer) {
     podTemplate(
-            label: labelx86_64,
+            label: "docker-build-x86_64${UUID.randomUUID().toString()}",
             containers: [
                     containerTemplate(name: 'docker',
                             image: 'docker:20.10.9',
