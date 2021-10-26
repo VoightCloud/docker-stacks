@@ -59,7 +59,9 @@ def buildArm(imageName, imageVersion, imageRepo, nexusServer, dockerLabel) {
                 container('docker') {
                     docker.withRegistry("https://${nexusServer}", 'NexusDockerLogin') {
                         unstash 'scm'
+                        sh 'ls -l'
                         dir(imageName) {
+                            sh 'ls -l'
                             image = docker.build("${imageRepo}/${imageName}:${imageVersion}-arm64")
                             image.push("${imageVersion}-arm64")
                             image.push("arm64-latest")
