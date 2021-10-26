@@ -1,5 +1,5 @@
 String imageVersion = "1.1"
-String imageNames = ["base-notebook", "minimal-notebook", "scipy-notebook", "pyspark-notebook", "allspark-notebook", "datascience-notebook",
+ArrayList<String> imageNames = ["base-notebook", "minimal-notebook", "scipy-notebook", "pyspark-notebook", "allspark-notebook", "datascience-notebook",
         "r-notebook", "tensorflow-notebook"]
 String imageRepo = "voight"
 String nexusServer = "nexus.voight.org:9042"
@@ -14,7 +14,7 @@ stage ("Build") {
     ) {
         stage('Build') {
             node('build') {
-                for(imageName: imageNames) {
+                for(imageName in imageNames) {
                     buildArm(imageName, imageVersion, imageRepo, nexusServer, "docker-build-arm${UUID.randomUUID().toString()}")
                     buildAMD(imageName, imageVersion, imageRepo, nexusServer, "docker-build-x86_64${UUID.randomUUID().toString()}")
                     createManifest(imageName, imageVersion, imageRepo, nexusServer, "docker-manifest-x86_64${UUID.randomUUID().toString()}")
