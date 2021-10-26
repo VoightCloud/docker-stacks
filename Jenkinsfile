@@ -44,9 +44,11 @@ def buildArm(imageName, imageVersion, imageRepo, nexusServer, dockerLabel) {
             stage('Push') {
                 container('docker') {
                     docker.withRegistry("https://${nexusServer}", 'NexusDockerLogin') {
-                        image = docker.build("${imageRepo}/${imageName}:${imageVersion}-arm64")
-                        image.push("${imageVersion}-arm64")
-                        image.push("arm64-latest")
+                        dir(imageName) {
+                            image = docker.build("${imageRepo}/${imageName}:${imageVersion}-arm64")
+                            image.push("${imageVersion}-arm64")
+                            image.push("arm64-latest")
+                        }
                     }
                 }
             }
@@ -88,9 +90,11 @@ def buildAMD(imageName, imageVersion, imageRepo, nexusServer, dockerLabel) {
             stage('Push') {
                 container('docker') {
                     docker.withRegistry("https://${nexusServer}", 'NexusDockerLogin') {
-                        image = docker.build("${imageRepo}/${imageName}:${imageVersion}-amd64")
-                        image.push("${imageVersion}-amd64")
-                        image.push("amd64-latest")
+                        dir(imageName) {
+                            image = docker.build("${imageRepo}/${imageName}:${imageVersion}-amd64")
+                            image.push("${imageVersion}-amd64")
+                            image.push("amd64-latest")
+                        }
                     }
                 }
             }
