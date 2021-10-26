@@ -3,7 +3,7 @@
 
 # Ubuntu 20.04 (focal)
 # https://hub.docker.com/_/ubuntu/?tab=tags&name=focal
-ARG ROOT_CONTAINER=ubuntu:focal
+ARG ROOT_CONTAINER=alpine:3.13.6
 
 FROM $ROOT_CONTAINER
 
