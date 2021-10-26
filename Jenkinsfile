@@ -7,25 +7,23 @@ pipeline {
     agent any
     stages {
         stage('Build') {
-            step {
-                def scmVars = checkout([
-                        $class           : 'GitSCM',
-                        userRemoteConfigs: scm.userRemoteConfigs,
-                        branches         : scm.branches,
-                        extensions       : scm.extensions
-                ])
+            def scmVars = checkout([
+                    $class           : 'GitSCM',
+                    userRemoteConfigs: scm.userRemoteConfigs,
+                    branches         : scm.branches,
+                    extensions       : scm.extensions
+            ])
 
-                // used to create the Docker image
-                env.GIT_BRANCH = scmVars.GIT_BRANCH
-                env.GIT_COMMIT = scmVars.GIT_COMMIT
+            // used to create the Docker image
+            env.GIT_BRANCH = scmVars.GIT_BRANCH
+            env.GIT_COMMIT = scmVars.GIT_COMMIT
 
-                stash name: 'scm', includes: '*'
-            }
-            step {
-                buildArm(imageName, imageVersion, imageRepo, nexusServer, "docker-build-arm${UUID.randomUUID().toString()}")
-                buildAMD(imageName, imageVersion, imageRepo, nexusServer, "docker-build-x86_64${UUID.randomUUID().toString()}")
-                createManifest(imageName, imageVersion, imageRepo, nexusServer)
-            }
+            stash name: 'scm', includes: '*'
+
+            buildArm(imageName, imageVersion, imageRepo, nexusServer, "docker-build-arm${UUID.randomUUID().toString()}")
+            buildAMD(imageName, imageVersion, imageRepo, nexusServer, "docker-build-x86_64${UUID.randomUUID().toString()}")
+            createManifest(imageName, imageVersion, imageRepo, nexusServer)
+
         }
     }
 }
