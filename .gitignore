@@ -68,3 +68,10 @@ dockerspawner.tar.gz
 .ipynb_checkpoints/
 .vscode/
 .pytest_cache/
+/.idea/.gitignore
+/.idea/dbnavigator.xml
+/.idea/docker-stacks.iml
+/.idea/libraries/groovy_2_4_17.xml
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/vcs.xml
