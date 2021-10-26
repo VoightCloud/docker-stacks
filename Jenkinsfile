@@ -4,6 +4,20 @@ String imageRepo = "voight"
 String nexusServer = "nexus.voight.org:9042"
 
 stage('Build') {
+    stage('Git Checkout') {
+        def scmVars = checkout([
+                $class           : 'GitSCM',
+                userRemoteConfigs: scm.userRemoteConfigs,
+                branches         : scm.branches,
+                extensions       : scm.extensions
+        ])
+
+        // used to create the Docker image
+        env.GIT_BRANCH = scmVars.GIT_BRANCH
+        env.GIT_COMMIT = scmVars.GIT_COMMIT
+    }
+    stash name: 'scm', includes:'*'
+
     buildArm(imageName, imageVersion, imageRepo, nexusServer, "docker-build-arm${UUID.randomUUID().toString()}")
     buildAMD(imageName, imageVersion, imageRepo, nexusServer, "docker-build-x86_64${UUID.randomUUID().toString()}")
     createManifest(imageName, imageVersion, imageRepo, nexusServer)
@@ -28,22 +42,10 @@ def buildArm(imageName, imageVersion, imageRepo, nexusServer, dockerLabel) {
             nodeSelector: 'kubernetes.io/arch=arm64'
     ) {
         node(dockerLabel) {
-            stage('Git Checkout') {
-                def scmVars = checkout([
-                        $class           : 'GitSCM',
-                        userRemoteConfigs: scm.userRemoteConfigs,
-                        branches         : scm.branches,
-                        extensions       : scm.extensions
-                ])
-
-                // used to create the Docker image
-                env.GIT_BRANCH = scmVars.GIT_BRANCH
-                env.GIT_COMMIT = scmVars.GIT_COMMIT
-            }
-
             stage('Push') {
                 container('docker') {
                     docker.withRegistry("https://${nexusServer}", 'NexusDockerLogin') {
+                        unstash 'scm'
                         dir(imageName) {
                             image = docker.build("${imageRepo}/${imageName}:${imageVersion}-arm64")
                             image.push("${imageVersion}-arm64")
@@ -75,21 +77,11 @@ def buildAMD(imageName, imageVersion, imageRepo, nexusServer, dockerLabel) {
             nodeSelector: 'kubernetes.io/arch=amd64'
     ) {
         node(dockerLabel) {
-            stage('Git Checkout') {
-                def scmVars = checkout([
-                        $class           : 'GitSCM',
-                        userRemoteConfigs: scm.userRemoteConfigs,
-                        branches         : scm.branches,
-                        extensions       : scm.extensions
-                ])
 
-                // used to create the Docker image
-                env.GIT_BRANCH = scmVars.GIT_BRANCH
-                env.GIT_COMMIT = scmVars.GIT_COMMIT
-            }
             stage('Push') {
                 container('docker') {
                     docker.withRegistry("https://${nexusServer}", 'NexusDockerLogin') {
+                        unstash 'scm'
                         dir(imageName) {
                             image = docker.build("${imageRepo}/${imageName}:${imageVersion}-amd64")
                             image.push("${imageVersion}-amd64")
@@ -102,9 +94,9 @@ def buildAMD(imageName, imageVersion, imageRepo, nexusServer, dockerLabel) {
     }
 }
 
-def createManifest(imageName, imageVersion, imageRepo, nexusServer) {
+def createManifest(imageName, imageVersion, imageRepo, nexusServer, dockerLabel) {
     podTemplate(
-            label: "docker-build-x86_64${UUID.randomUUID().toString()}",
+            label: dockerLabel,
             containers: [
                     containerTemplate(name: 'docker',
                             image: 'docker:20.10.9',
@@ -120,7 +112,7 @@ def createManifest(imageName, imageVersion, imageRepo, nexusServer) {
             ],
             nodeSelector: 'kubernetes.io/arch=amd64'
     ) {
-        node(labelx86_64) {
+        node(dockerLabel) {
             stage('Manifest') {
                 container('docker') {
                     docker.withRegistry("https://${nexusServer}", 'NexusDockerLogin') {
