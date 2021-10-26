@@ -1,6 +1,6 @@
 String imageVersion = "1.1"
-ArrayList<String> imageNames = ["base-notebook", "minimal-notebook", "scipy-notebook", "pyspark-notebook", "allspark-notebook", "datascience-notebook",
-        "r-notebook", "tensorflow-notebook"]
+ArrayList<String> imageNames = ["base-notebook", "minimal-notebook", "scipy-notebook", "pyspark-notebook", "all-spark-notebook", "datascience-notebook",
+        "tensorflow-notebook", "r-notebook"]
 String imageRepo = "voight"
 String nexusServer = "nexus.voight.org:9042"
 
