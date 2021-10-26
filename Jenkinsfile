@@ -3,7 +3,8 @@ String imageName = "base-notebook"
 String imageRepo = "voight"
 String nexusServer = "nexus.voight.org:9042"
 
-node('any') {
+pipeline {
+    agent any
     stage('Build') {
         def scmVars = checkout([
                 $class           : 'GitSCM',
