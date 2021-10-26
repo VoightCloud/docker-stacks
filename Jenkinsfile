@@ -56,6 +56,13 @@ def buildArm(imageName, imageVersion, imageRepo, nexusServer, dockerLabel) {
     ) {
         node(dockerLabel) {
             stage('Push') {
+                def scmVars = checkout([
+                        $class           : 'GitSCM',
+                        userRemoteConfigs: scm.userRemoteConfigs,
+                        branches         : scm.branches,
+                        extensions       : scm.extensions
+                ])
+
                 container('docker') {
                     docker.withRegistry("https://${nexusServer}", 'NexusDockerLogin') {
                         unstash 'scm'
@@ -94,6 +101,13 @@ def buildAMD(imageName, imageVersion, imageRepo, nexusServer, dockerLabel) {
         node(dockerLabel) {
 
             stage('Push') {
+                def scmVars = checkout([
+                        $class           : 'GitSCM',
+                        userRemoteConfigs: scm.userRemoteConfigs,
+                        branches         : scm.branches,
+                        extensions       : scm.extensions
+                ])
+
                 container('docker') {
                     docker.withRegistry("https://${nexusServer}", 'NexusDockerLogin') {
                         unstash 'scm'
