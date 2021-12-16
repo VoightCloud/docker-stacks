@@ -1,4 +1,4 @@
-String imageVersion = "1.2"
+String imageVersion = "1.3"
 ArrayList<String> imageNames = ["base-notebook", "minimal-notebook", "scipy-notebook", "pyspark-notebook", "all-spark-notebook", "r-notebook", "datascience-notebook",
         "r-notebook"]
 String imageRepo = "voight"
