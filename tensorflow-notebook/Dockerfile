@@ -6,7 +6,8 @@ FROM $BASE_CONTAINER
 
 LABEL maintainer="Jupyter Project <jupyter@googlegroups.com>"
 
-# Fix DL4006
+# Fix: https://github.com/hadolint/hadolint/wiki/DL4006
+# Fix: https://github.com/koalaman/shellcheck/wiki/SC3014
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # Install Tensorflow
@@ -15,10 +16,3 @@ RUN mamba install --quiet --yes \
     mamba clean --all -f -y && \
     fix-permissions "${CONDA_DIR}" && \
     fix-permissions "/home/${NB_USER}"
-
-# Temporary fix for https://github.com/jupyter/docker-stacks/issues/1480
-USER root
-WORKDIR /opt/conda/lib/python3.9/site-packages/
-RUN wget -qO- https://patch-diff.githubusercontent.com/raw/tensorflow/tensorflow/pull/51450.diff | git apply
-USER ${NB_UID}
-WORKDIR "${HOME}"

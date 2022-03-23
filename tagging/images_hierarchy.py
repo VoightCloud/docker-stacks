@@ -2,29 +2,30 @@
 # Distributed under the terms of the Modified BSD License.
 from dataclasses import dataclass, field
 from typing import Optional
+
+from .manifests import (
+    AptPackagesManifest,
+    CondaEnvironmentManifest,
+    JuliaPackagesManifest,
+    ManifestInterface,
+    RPackagesManifest,
+    SparkInfoManifest,
+)
 from .taggers import (
-    TaggerInterface,
-    SHATagger,
     DateTagger,
-    UbuntuVersionTagger,
-    PythonVersionTagger,
-    JupyterNotebookVersionTagger,
-    JupyterLabVersionTagger,
-    JupyterHubVersionTagger,
-    RVersionTagger,
-    TensorflowVersionTagger,
-    JuliaVersionTagger,
-    SparkVersionTagger,
     HadoopVersionTagger,
     JavaVersionTagger,
-)
-from .manifests import (
-    ManifestInterface,
-    CondaEnvironmentManifest,
-    AptPackagesManifest,
-    RPackagesManifest,
-    JuliaPackagesManifest,
-    SparkInfoManifest,
+    JuliaVersionTagger,
+    JupyterHubVersionTagger,
+    JupyterLabVersionTagger,
+    JupyterNotebookVersionTagger,
+    PythonVersionTagger,
+    RVersionTagger,
+    SHATagger,
+    SparkVersionTagger,
+    TaggerInterface,
+    TensorflowVersionTagger,
+    UbuntuVersionTagger,
 )
 
 
@@ -39,39 +40,39 @@ ALL_IMAGES = {
     "base-notebook": ImageDescription(
         parent_image=None,
         taggers=[
-            SHATagger,
-            DateTagger,
-            UbuntuVersionTagger,
-            PythonVersionTagger,
-            JupyterNotebookVersionTagger,
-            JupyterLabVersionTagger,
-            JupyterHubVersionTagger,
+            SHATagger(),
+            DateTagger(),
+            UbuntuVersionTagger(),
+            PythonVersionTagger(),
+            JupyterNotebookVersionTagger(),
+            JupyterLabVersionTagger(),
+            JupyterHubVersionTagger(),
         ],
-        manifests=[CondaEnvironmentManifest, AptPackagesManifest],
+        manifests=[CondaEnvironmentManifest(), AptPackagesManifest()],
     ),
     "minimal-notebook": ImageDescription(parent_image="base-notebook"),
     "scipy-notebook": ImageDescription(parent_image="minimal-notebook"),
     "r-notebook": ImageDescription(
         parent_image="minimal-notebook",
-        taggers=[RVersionTagger],
-        manifests=[RPackagesManifest],
+        taggers=[RVersionTagger()],
+        manifests=[RPackagesManifest()],
     ),
     "tensorflow-notebook": ImageDescription(
-        parent_image="scipy-notebook", taggers=[TensorflowVersionTagger]
+        parent_image="scipy-notebook", taggers=[TensorflowVersionTagger()]
     ),
     "datascience-notebook": ImageDescription(
         parent_image="scipy-notebook",
-        taggers=[RVersionTagger, JuliaVersionTagger],
-        manifests=[RPackagesManifest, JuliaPackagesManifest],
+        taggers=[RVersionTagger(), JuliaVersionTagger()],
+        manifests=[RPackagesManifest(), JuliaPackagesManifest()],
     ),
     "pyspark-notebook": ImageDescription(
         parent_image="scipy-notebook",
-        taggers=[SparkVersionTagger, HadoopVersionTagger, JavaVersionTagger],
-        manifests=[SparkInfoManifest],
+        taggers=[SparkVersionTagger(), HadoopVersionTagger(), JavaVersionTagger()],
+        manifests=[SparkInfoManifest()],
     ),
     "all-spark-notebook": ImageDescription(
         parent_image="pyspark-notebook",
-        taggers=[RVersionTagger],
-        manifests=[RPackagesManifest],
+        taggers=[RVersionTagger()],
+        manifests=[RPackagesManifest()],
     ),
 }

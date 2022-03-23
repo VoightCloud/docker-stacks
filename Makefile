@@ -48,9 +48,10 @@ help:
 
 
 
+build/%: DOCKER_BUILD_ARGS?=
 build/%: ## build the latest image for a stack using the system's architecture
 	@echo "::group::Build $(OWNER)/$(notdir $@) (system's architecture)"
-	docker build --rm --force-rm -t $(OWNER)/$(notdir $@):latest ./$(notdir $@) --build-arg OWNER=$(OWNER)
+	docker build $(DOCKER_BUILD_ARGS) --rm --force-rm -t $(OWNER)/$(notdir $@):latest ./$(notdir $@) --build-arg OWNER=$(OWNER)
 	@echo -n "Built image size: "
 	@docker images $(OWNER)/$(notdir $@):latest --format "{{.Size}}"
 	@echo "::endgroup::"
@@ -96,22 +97,23 @@ build-all: $(foreach I, $(ALL_IMAGES), build/$(I)) ## build all stacks
 #    without needing to update this Makefile, and if all tests succeeds we can
 #    do a publish job that creates a multi-platform image for us.
 #
+build-multi/%: DOCKER_BUILD_ARGS?=
 build-multi/%: ## build the latest image for a stack on both amd64 and arm64
 	@echo "::group::Build $(OWNER)/$(notdir $@) (system's architecture)"
-	docker buildx build -t $(OWNER)/$(notdir $@):latest ./$(notdir $@) --build-arg OWNER=$(OWNER) --load
+	docker buildx build $(DOCKER_BUILD_ARGS) -t $(OWNER)/$(notdir $@):latest ./$(notdir $@) --build-arg OWNER=$(OWNER) --load
 	@echo -n "Built image size: "
 	@docker images $(OWNER)/$(notdir $@):latest --format "{{.Size}}"
 	@echo "::endgroup::"
 
 	@echo "::group::Build $(OWNER)/$(notdir $@) (amd64,arm64)"
-	docker buildx build -t build-multi-tmp-cache/$(notdir $@):latest ./$(notdir $@) --build-arg OWNER=$(OWNER) --platform "linux/amd64,linux/arm64"
+	docker buildx build $(DOCKER_BUILD_ARGS) -t build-multi-tmp-cache/$(notdir $@):latest ./$(notdir $@) --build-arg OWNER=$(OWNER) --platform "linux/amd64,linux/arm64"
 	@echo "::endgroup::"
 build-all-multi: $(foreach I, $(MULTI_IMAGES), build-multi/$(I)) $(foreach I, $(AMD64_ONLY_IMAGES), build/$(I)) ## build all stacks
 
 
 
 check-outdated/%: ## check the outdated mamba/conda packages in a stack and produce a report (experimental)
-	@TEST_IMAGE="$(OWNER)/$(notdir $@)" pytest test/test_outdated.py
+	@TEST_IMAGE="$(OWNER)/$(notdir $@)" pytest tests/base-notebook/test_outdated.py
 check-outdated-all: $(foreach I, $(ALL_IMAGES), check-outdated/$(I)) ## check all the stacks for outdated packages
 
 
@@ -126,18 +128,23 @@ cont-rm-all: ## remove all containers
 
 
 
-dev/%: DARGS?=-e JUPYTER_ENABLE_LAB=yes
 dev/%: PORT?=8888
 dev/%: ## run a foreground container for a stack
 	docker run -it --rm -p $(PORT):8888 $(DARGS) $(OWNER)/$(notdir $@)
 
-dev-env: ## install libraries required to build docs and run tests
+install-dev-env: ## install libraries required to build images and run tests
 	@pip install -r requirements-dev.txt
 
 
 
 docs: ## build HTML documentation
-	sphinx-build docs/ docs/_build/
+	sphinx-build -W --keep-going --color docs/ docs/_build/
+
+linkcheck-docs: ## check broken links
+	sphinx-build -W --keep-going --color -b linkcheck docs/ docs/_build/
+
+install-docs-env: ## install libraries required to build docs
+	@pip install -r requirements-docs.txt
 
 
 
@@ -163,7 +170,7 @@ img-rm-dang: ## remove dangling images (tagged None)
 
 
 pre-commit-all: ## run pre-commit hook on all files
-	@pre-commit run --all-files || (printf "\n\n\n" && git --no-pager diff --color=always)
+	@pre-commit run --all-files --hook-stage manual
 pre-commit-install: ## set up the git hook scripts
 	@pre-commit --version
 	@pre-commit install
@@ -181,25 +188,25 @@ push/%: ## push all tags for a jupyter image
 	@echo "::endgroup::"
 push-all: $(foreach I, $(ALL_IMAGES), push/$(I)) ## push all tagged images
 
+push-multi/%: DOCKER_BUILD_ARGS?=
 push-multi/%: ## push all tags for a jupyter image that support multiple architectures
 	@echo "::group::Push $(OWNER)/$(notdir $@) (amd64,arm64)"
-	docker buildx build $($(subst -,_,$(notdir $@))_EXTRA_TAG_ARGS) -t $(OWNER)/$(notdir $@):latest ./$(notdir $@) --build-arg OWNER=$(OWNER) --platform "linux/amd64,linux/arm64" --push
+	docker buildx build $(DOCKER_BUILD_ARGS) $($(subst -,_,$(notdir $@))_EXTRA_TAG_ARGS) -t $(OWNER)/$(notdir $@):latest ./$(notdir $@) --build-arg OWNER=$(OWNER) --platform "linux/amd64,linux/arm64" --push
 	@echo "::endgroup::"
 push-all-multi: $(foreach I, $(MULTI_IMAGES), push-multi/$(I)) $(foreach I, $(AMD64_ONLY_IMAGES), push/$(I)) ## push all tagged images
 
 
 
-run/%: ## run a bash in interactive mode in a stack
+run-shell/%: ## run a bash in interactive mode in a stack
 	docker run -it --rm $(OWNER)/$(notdir $@) $(SHELL)
 
-run-sudo/%: ## run a bash in interactive mode as root in a stack
-	docker run -it --rm -u root $(OWNER)/$(notdir $@) $(SHELL)
+run-sudo-shell/%: ## run a bash in interactive mode as root in a stack
+	docker run -it --rm --user root $(OWNER)/$(notdir $@) $(SHELL)
 
 
 
-test/%: ## run tests against a stack (only common tests or common tests + specific tests)
+test/%: ## run tests against a stack
 	@echo "::group::test/$(OWNER)/$(notdir $@)"
-	@if [ ! -d "$(notdir $@)/test" ]; then TEST_IMAGE="$(OWNER)/$(notdir $@)" pytest -m "not info" test; \
-	else TEST_IMAGE="$(OWNER)/$(notdir $@)" pytest -m "not info" test $(notdir $@)/test; fi
+	tests/run_tests.py --short-image-name "$(notdir $@)" --owner "$(OWNER)"
 	@echo "::endgroup::"
 test-all: $(foreach I, $(ALL_IMAGES), test/$(I)) ## test all stacks
